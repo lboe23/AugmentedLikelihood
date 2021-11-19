@@ -1,15 +1,6 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// parameterization type C
-// parm[0] is log(-log(S[0])) corresponding to first visit time
-// parm[j] is log(-log(S[j])) - log(-log(S[j-1])) corresponding to change
-//   in log(-log(S)) in that time period
-// This is inspired by representing survival function as exp(-exp(lambda + beta*Z))
-
-// Functions for processing data for likelihood functions
-
-
 // [[Rcpp::export]]
 NumericMatrix cmat(NumericVector id, NumericVector time, IntegerVector result, double phi1, double phi0, double negpred) {
   NumericVector utime = unique(time);
