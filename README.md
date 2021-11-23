@@ -5,7 +5,7 @@ Code files include:
 
 (1) R code that runs simulations to assess the performance of the proposed method compared to the the standard interval-censored approach that does not incorporate auxiliary data : Proposed_FinalSims_RandomSample.R
 
-(2) An R script, PROPOSED_AUGMENTEDLIKELIHOOD_FUNCTIONS.R, containing two functions, "log_like_proposed," which calculates the log-likelihood for the proposed method and "gradient_proposed" which calculates the gradient/estimating function for the proposed method. Both functions ask you to specify function purpose which should either be "SUM" or "INDIVIDUAL." SUM returns the sum of the log-likelihood or gradient contributions, respectively, while individual returns a vector/matrix of each person's contributions.
+(2) An R script, PROPOSED_AUGMENTEDLIKELIHOOD_FUNCTIONS.R, containing two functions, "log_like_proposed," which calculates the log-likelihood for the proposed method and "gradient_proposed" which calculates the gradient/estimating function for the proposed method. Both functions ask you to specify function purpose which should either be "SUM" or "INDIVIDUAL." SUM returns the sum of the log-likelihood or gradient contributions, respectively, while INDIVIDUAL returns a vector/matrix of each person's contributions.
 
 (3) An RCPP file creating the function "cmat" which is used in file (2). The function "cmat" is inspired by the function "dmat" described below.
 
