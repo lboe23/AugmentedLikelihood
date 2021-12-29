@@ -9,4 +9,11 @@ Code files include:
 
 (3) An RCPP file creating the function "cmat" which is used in file (2). The function "cmat" is inspired by the function "dmat" described below.
 
-File (1) relies on Files (2) and (3) in order to calculate the log likelihood. File (2) relies on functions "dmat" and "getrids" from the following link https://github.com/XiangdongGu/icensmis/blob/master/src/dataproc.cpp in order to run. These Rcpp functions were developed by Gu, Ma, and Balasubramanian (2015) for the following paper: "Semiparametric time to event models in the presence of error-prone, self-reported outcomes—With application to the women’s health initiative."
+(4) A simulated dataset representing hypothetical data with similar features to the HCHS/SOL cohort that will be used to illustrate our method: SampleData.RData
+
+(5) R code that performs a sample data analysis using the simulated data from (4) above: Sample_Data_Analysis_Final.R. This code illustrates the analysis methods we used in our manuscript to compute hazard ratio (HR) and 95% confidence interval (CI) estimates of a simulated health outcome based on (a) the proposed method and (b) the standard, no auxiliary data method. In this applied analysis, we show how to use the proposed method with complex survey data and additionally apply regression calibration to adjust for covariate error. For variance estimation in the presence of regression calibration and a complex survey design, we will use the parametric multiple imputation (MI) procedure proposed by Baldoni et al. 2021. The code used for this MI-based variance estimation procedure is adapted from the following R code: https://github.com/plbaldoni/HCHSsim/blob/master/R/runMI.R. 
+
+(6) An R data file containing the output obtained from applying this parametric MI procedure for variance estimation: SampleAnalysis_MIVarianceResults.RData. We provide this output so that the user does not have to wait to run the code for the MI variance estimation procedure and simply has access to the results. 
+
+
+Note: File (1) relies on Files (2) and (3) in order to calculate the log likelihood. File (2) relies on functions "dmat" and "getrids" from the following link https://github.com/XiangdongGu/icensmis/blob/master/src/dataproc.cpp in order to run. These Rcpp functions were developed by Gu, Ma, and Balasubramanian (2015) for the following paper: "Semiparametric time to event models in the presence of error-prone, self-reported outcomes—With application to the women’s health initiative."
