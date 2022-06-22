@@ -141,16 +141,10 @@ parmi <- c(rep(0.5,nbeta),lami)
   samp_design_reg = svydesign(id=~BGid, strata=~strat, weights=~bghhsub_s2, data=IC_GS_datafinal)
   samp_design_reg_complete = svydesign(id=~BGid, strata=~strat, weights=~bghhsub_s2, data=IC_data)
 
-#Fit proposed method and standard, IC approach for unweighted estimators
-   proposed_fit_data<-optim(par=parmi, fn=log_like_proposed,gr=gradient_proposed,lower = lowerLBFGS,upper=upperLBFGS,method = "L-BFGS-B",nsub,J,nbeta,Dm,Cm,Xmat,GSdelta,GSVis,weights=noweights,
-                    purpose="SUM",hessian=TRUE)
-    
-    proposed_fit_data_GS<-glm(GS_vis4~xhat+z1+z2,family=quasibinomial(link="cloglog"),data=IC_GS_datafinal)
-    inverted_hessian<-solve(proposed_fit_data$hessian)
-
 #Fit proposed method and standard, IC approach for weighted estimators
     proposed_fit_data_weight<-optim(par=parmi, fn=log_like_proposed,gr=gradient_proposed,lower = lowerLBFGS,upper=upperLBFGS,method = "L-BFGS-B",nsub,J,nbeta,Dm,Cm,Xmat,GSdelta,GSVis,weights=weights,
                     purpose="SUM",hessian=TRUE)
+    inverted_hessian<-solve(proposed_fit_data_weight$hessian)
 
     proposed_fit_data_weight_GS<-svyglm(GS_vis4~xhat+z1+z2,family=quasibinomial(link="cloglog"),data=IC_GS_datafinal,design=samp_design_reg)
     proposed_fit_data_weight_GS$coefficients
