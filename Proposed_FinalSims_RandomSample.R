@@ -18,12 +18,10 @@ source('U:/Paper 2/Code/Paper 2 Likelihood FINAL.R')
 #   prop_m<-0
 #   N<-0
 #   myCR<-0
-#   pmiss<-0
 # } else{
 #   prop_m<-as.numeric(args[1])
 #   N=as.numeric(args[2])
 #   myCR=as.numeric(args[3])
-#   pmiss<-as.numeric(args[4])
 # 
 # }
 
@@ -45,11 +43,10 @@ after_first_pos <- function(x){
 ################Begin data generating mechanism#######################
 ######################################################################
 
-#Settings to vary: proportion of missingness in gold standard, sample size, censoring rate for latent true event time, and proportion of missingness in auxiliary data
+#Settings to vary: proportion of missingness in gold standard, sample size, censoring rate for latent true event time
 prop_m<-0
 N<-1000
 myCR<-0.9
-pmiss<-0
 
 #Set sensitivity and specificity
 sensitivity<-0.80
@@ -124,14 +121,9 @@ for(iter in 1:NSIM){
   #Create our data set
   data1<-data.frame(ID,time,result,true_result,x_1)
 
-  #Allow for missed visits
-  #MCAR setting - assumes that each test is subject to a constant, independent probability of missingness.
-  notmiss <- rbinom(nrow(data1), 1, 1 - pmiss)
-  data1a <- data1[notmiss == 1, ]
-
   #Now delete any positives after first positive self-report/auxiliary data outcome
-  keep<-unlist(tapply(data1a$result,data1a$ID,after_first_pos))
-  datafinal_1<-data1a[keep,]
+  keep<-unlist(tapply(data1$result,data1$ID,after_first_pos))
+  datafinal_1<-data1[keep,]
 
   #Put data in wide form so we can see gold standard results
   data_wide_trueresult <- reshape2::dcast(data1, ID ~ time, value.var="true_result")
@@ -153,9 +145,6 @@ for(iter in 1:NSIM){
   #Create final data sets for the proposed method analysis and gold standard analysis
   datafinal<-merge(datafinal_1,GS_vis4_dat,by="ID")
   datafinal_GS<-merge(data1,GS_vis4_dat,by="ID")
-
-#  subject<-ID
-#  testtime<-testtimes #should just be 4 testtimes
 
   #Create formula: just a single covariate x in the outcome model
   formula=result~x_1
@@ -256,7 +245,7 @@ for(iter in 1:NSIM){
   #functions "log_like_proposed" and "gradient_proposed" come from file "PROPOSED_AUGMENTEDLIKELIHOOD_FUNCTIONS.R" that 
   proposed_fit<-optim(par=parmi, log_like_proposed,gradient_proposed,lower = lowerLBFGS,upper=c(Inf,Inf,Inf,Inf,Inf),method = "L-BFGS-B",nsub,J,nbeta,Dm,Cm,Xmat,GSdelta,GSVis,weights,
             purpose="SUM")
-  result_var<-solve(pracma::hessian(log_like_3,x=proposed_fit$par))
+  result_var<-solve(pracma::hessian(log_like_proposed,x=proposed_fit$par))
   beta1est_aux<-  proposed_fit$par[1]
   beta1se_aux<-sqrt(result_var[1,1])
 
