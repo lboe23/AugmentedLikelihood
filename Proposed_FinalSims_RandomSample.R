@@ -75,8 +75,10 @@ blambda<-ifelse(dist=="Exp",ifelse(myCR==0.5,0.17,ifelse(myCR==0.7,0.08,ifelse(m
 #Set "shape" for event time generation
 shape<-0.4 #shape=1 implies constant (exponential) baseline hazard
 
-#Set a reasonable value for our true beta_1 and true beta_2
+#Set a reasonable value for our true beta_1 and starting beta1_0
 beta_1<-log(1.5)
+beta1_0<-0.5
+
 
 NSIM<-1000
 
