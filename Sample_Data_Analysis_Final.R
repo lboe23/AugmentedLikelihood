@@ -149,8 +149,8 @@ parmi <- c(rep(0.5,nbeta),lami)
     proposed_fit_data_weight_GS<-svyglm(GS_vis4~xhat+z1+z2,family=quasibinomial(link="cloglog"),data=IC_GS_datafinal,design=samp_design_reg)
     proposed_fit_data_weight_GS$coefficients
 #Calculate sandwich variance to incorporate stratification and clustering
-    U_prop1<-gradient_proposed(proposed_fit_data$par,nsub,J,nbeta,Dm,Cm,Xmat,GSdelta,GSVis,weights=noweights,
-                               purpose="INDIVIDUAL")
+    U_prop1<-gradient_proposed(proposed_fit_data_weight$par,nsub,J,nbeta,Dm,Cm,Xmat,GSdelta,GSVis,weights=noweights,
+                           purpose="INDIVIDUAL")
     infl1<- U_prop1%*%inverted_hessian
     mySandVar<- vcov(svytotal(infl1,samp_design_reg_complete,influence=TRUE))
     
@@ -173,73 +173,67 @@ parmi <- c(rep(0.5,nbeta),lami)
     list_mi = list()
 
 # Multiple Imputation starts now
-  for(j in 1:M){cat("Imputation: ",j,".\n")
-    
-    list_mi[[j]] = list()
-      # Sampling new variance-covariance matrix from inverse chi-squared distribution
-      samp.solnas.boot <- samp.solnas[sample(1:nrow(samp.solnas),nrow(samp.solnas),replace = T),]
-      vcov.star <- (((sigma(lm.lsodi)^2)*(lm.lsodi$df.residual))/rchisq(n=1,df=lm.lsodi$df.residual))*ixtx.lsodi
-     
-      IC_data$xhat_mi <- with(IC_data,cbind(1,xstar,z1,z2))%*%mvrnorm(n=1,mu=as.numeric(lm.lsodi$coefficients),Sigma=vcov.star)
-      IC_GS_datafinal<-IC_data[complete.cases(IC_data$GS_vis4_mis),]
-
-      #update sampling design
-      samp_design_reg <- update(samp_design_reg,xhat_mi = IC_GS_datafinal$xhat_mi)
-      samp_design_reg_complete <- update(samp_design_reg_complete,xhat_mi = IC_data$xhat_mi)
-
-      #outcome model formula again
-      formula_mi=result~xhat_mi+z1+z2
-
-      #Create Xmatrix, which is our model matrix with one column per covariate and currently is in long form (one row per visit)
-      Xmat_mi <- model.matrix(formula_mi, data = IC_data)[, -1, drop = F]
-
-        
-      #Fit proposed method and standard, IC approach for unweighted estimators
-      proposed_fit_data_mi<-optim(par=parmi, fn=log_like_proposed,gr=gradient_proposed,lower = lowerLBFGS,upper=upperLBFGS,method = "L-BFGS-B",nsub,J,nbeta,Dm,Cm,Xmat=Xmat_mi,GSdelta,GSVis,weights=noweights,
-                               purpose="SUM",hessian=TRUE)
-      
-      proposed_fit_data_GS_mi<-glm(GS_vis4~xhat_mi+z1+z2,family=quasibinomial(link="cloglog"),data=IC_GS_datafinal)
-      inverted_hessian_mi<-solve(proposed_fit_data_mi$hessian)
-      
-      #Fit proposed method and standard, IC approach for weighted estimators
-      proposed_fit_data_weight_mi<-optim(par=parmi, fn=log_like_proposed,gr=gradient_proposed,lower = lowerLBFGS,upper=upperLBFGS,method = "L-BFGS-B",nsub,J,nbeta,Dm,Cm,Xmat=Xmat_mi,GSdelta,GSVis,weights=weights,
-                                      purpose="SUM",hessian=TRUE)
-      
-      proposed_fit_data_weight_GS_mi<-svyglm(GS_vis4~xhat_mi+z1+z2,family=quasibinomial(link="cloglog"),data=IC_GS_datafinal,design=samp_design_reg)
-      
-      #Calculate sandwich variance to incorporate stratification and clustering
-      U_prop1_mi<-gradient_proposed(proposed_fit_data_mi$par,nsub,J,nbeta,Dm,Cm,Xmat=Xmat_mi,GSdelta,GSVis,weights=noweights,
-                                 purpose="INDIVIDUAL")
-      infl1_mi<- U_prop1_mi%*%inverted_hessian_mi
-      mySandVar_mi<- vcov(svytotal(infl1_mi,samp_design_reg_complete,influence=TRUE))
-      
-      #Save estimated parameters
-      beta1est_aux_w_mi<-  proposed_fit_data_weight_mi$par[1]
-      sandVar_mi<-  sqrt(diag(mySandVar_mi))[1]
-      
-      fitsum_truth4Year_mi<-summary(proposed_fit_data_weight_GS_mi)
-      beta1est_truth4Year_mi<-fitsum_truth4Year_mi$coefficients["xhat_mi",1]
-      beta1se_truth4Year_mi<-fitsum_truth4Year_mi$coefficients["xhat_mi",2]
-      
-      # Saving parameters
-      list_mi[[j]] <-data.frame(Imp=j,beta1est_aux_w_mi,sandVar_mi,beta1est_truth4Year_mi,beta1se_truth4Year_mi)
-      
-      
-      list_mi[[j]] <- do.call(rbind,list_mi[[j]])
-      
-      print(j)
-  }
+for(j in 1:M){cat("Imputation: ",j,".\n")
   
-   # save(list_mi,file=paste0('U:/Paper 2/SampleAnalysis_MIVarianceResults2.RData'))
-    
-    load(file=paste0('U:/Paper 2/SampleAnalysis_MIVarianceResults.RData'))
-    
-    output_mi<-as.data.frame(matrix(unlist(list_mi), ncol=5, byrow=T))
-    colnames(output_mi)<-c("Imp","beta_proposed_mi","se_proposed_mi","beta_standard_mi","se_standard_mi")
+  list_mi[[j]] = list()
+  # Sampling new variance-covariance matrix from inverse chi-squared distribution
+  samp.solnas.boot <- samp.solnas[sample(1:nrow(samp.solnas),nrow(samp.solnas),replace = T),]
+  vcov.star <- (((sigma(lm.lsodi)^2)*(lm.lsodi$df.residual))/rchisq(n=1,df=lm.lsodi$df.residual))*ixtx.lsodi
+  
+  IC_data$xhat_mi <- with(IC_data,cbind(1,xstar,z1,z2))%*%mvrnorm(n=1,mu=as.numeric(lm.lsodi$coefficients),Sigma=vcov.star)
+  IC_GS_datafinal<-IC_data[complete.cases(IC_data$GS_vis4_mis),]
+  
+  #update sampling design
+  samp_design_reg <- update(samp_design_reg,xhat_mi = IC_GS_datafinal$xhat_mi)
+  samp_design_reg_complete <- update(samp_design_reg_complete,xhat_mi = IC_data$xhat_mi)
+  
+  #outcome model formula again
+  formula_mi=result~xhat_mi+z1+z2
+  
+  #Create Xmatrix, which is our model matrix with one column per covariate and currently is in long form (one row per visit)
+  Xmat_mi <- model.matrix(formula_mi, data = IC_data)[, -1, drop = F]
+  
+  
+  #Fit proposed method and standard, IC approach for weighted estimators
+  proposed_fit_data_weight_mi<-optim(par=parmi, fn=log_like_proposed,gr=gradient_proposed,lower = lowerLBFGS,upper=upperLBFGS,method = "L-BFGS-B",nsub,J,nbeta,Dm,Cm,Xmat=Xmat_mi,GSdelta,GSVis,weights=weights,
+                                     purpose="SUM",hessian=TRUE)
+  inverted_hessian_mi<-solve(proposed_fit_data_weight_mi$hessian)
+  
+  proposed_fit_data_weight_GS_mi<-svyglm(GS_vis4~xhat_mi+z1+z2,family=quasibinomial(link="cloglog"),data=IC_GS_datafinal,design=samp_design_reg)
+  
+  #Calculate sandwich variance to incorporate stratification and clustering
+  U_prop1_mi<-gradient_proposed(proposed_fit_data_weight_mi$par,nsub,J,nbeta,Dm,Cm,Xmat=Xmat_mi,GSdelta,GSVis,weights=noweights,
+                                purpose="INDIVIDUAL")
+  infl1_mi<- U_prop1_mi%*%inverted_hessian_mi
+  mySandVar_mi<- vcov(svytotal(infl1_mi,samp_design_reg_complete,influence=TRUE))
+  
+  #Save estimated parameters
+  beta1est_aux_w_mi<-  proposed_fit_data_weight_mi$par[1]
+  sandVar_mi<-  sqrt(diag(mySandVar_mi))[1]
+  
+  fitsum_truth4Year_mi<-summary(proposed_fit_data_weight_GS_mi)
+  beta1est_truth4Year_mi<-fitsum_truth4Year_mi$coefficients["xhat_mi",1]
+  beta1se_truth4Year_mi<-fitsum_truth4Year_mi$coefficients["xhat_mi",2]
+  
+  # Saving parameters
+  list_mi[[j]] <-data.frame(Imp=j,beta1est_aux_w_mi,sandVar_mi,beta1est_truth4Year_mi,beta1se_truth4Year_mi)
+  
+  
+  list_mi[[j]] <- do.call(rbind,list_mi[[j]])
+  
+  print(j)
+}
+
+save(list_mi,file=paste0('U:/Paper 2/SampleAnalysis_MIVarianceResults3.RData'))
+
+load(file=paste0('U:/Paper 2/SampleAnalysis_MIVarianceResults3.RData'))
+
+output_mi<-as.data.frame(matrix(unlist(list_mi), ncol=5, byrow=T))
+colnames(output_mi)<-c("Imp","beta_proposed_mi","se_proposed_mi","beta_standard_mi","se_standard_mi")
 
 MI_Var<-function(V,betas){
-      var<-(median(V)+(mad(betas)^2))
-      return(sqrt(var))
+  var<-(median(V)+(mad(betas)^2))
+  return(sqrt(var))
 }
 
 
